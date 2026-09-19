@@ -1,0 +1,854 @@
+import type { Tool, ToolCategoryId } from './types'
+import { CATEGORY_META } from './categoryMeta'
+
+const t = (
+  base: Omit<Partial<Tool>, 'processing' | 'component'>,
+  component: () => Promise<{ default: React.ComponentType }>,
+): Tool => ({
+  status: 'production',
+  processing: { local: 'Processing happens entirely in your browser. Files never leave your device.' },
+  ...base,
+  component,
+})
+
+const TOOLS: Tool[] = [
+
+t(
+    {
+      id: 'background-remover', name: 'Background Remover', slug: 'background-remover', category: 'image',
+      description: 'Remove image backgrounds and get a transparent PNG.',
+      seoTitle: 'Background Remover - Free PNG', icon: 'wand', related: ['image-compressor', 'image-resizer'],
+    },
+    () => import('./tools/image/BackgroundRemover'),
+  ),
+  t(
+    {
+      id: 'image-upscaler', name: 'Image Upscaler', slug: 'image-upscaler', category: 'image',
+      description: 'Enlarge images with quality scaling modes.',
+      icon: 'maximize', related: ['image-resizer', 'image-converter'],
+    },
+    () => import('./tools/image/ImageUpscaler'),
+  ),
+  t(
+    {
+      id: 'image-compressor', name: 'Image Compressor', slug: 'image-compressor', category: 'image',
+      description: 'Reduce image file size while keeping quality.',
+      seoTitle: 'Image Compressor - Reduce Size Free', icon: 'minimize', related: ['image-resizer', 'image-converter'],
+    },
+    () => import('./tools/image/ImageCompressor'),
+  ),
+  t(
+    {
+      id: 'image-resizer', name: 'Image Resizer', slug: 'image-resizer', category: 'image',
+      description: 'Resize images to exact dimensions or presets.',
+      icon: 'scaling', related: ['image-cropper', 'image-converter'],
+    },
+    () => import('./tools/image/ImageResizer'),
+  ),
+  t(
+    {
+      id: 'image-cropper', name: 'Image Cropper', slug: 'image-cropper', category: 'image',
+      description: 'Crop images with free crop or preset ratios.',
+      icon: 'crop', related: ['image-resizer', 'image-converter'],
+    },
+    () => import('./tools/image/ImageCropper'),
+  ),
+  t(
+    {
+      id: 'image-converter', name: 'Image Converter', slug: 'image-converter', category: 'image',
+      description: 'Convert images between JPG, PNG, WebP and AVIF.',
+      icon: 'repeat', related: ['image-compressor', 'image-resizer'],
+    },
+    () => import('./tools/image/ImageConverter'),
+  ),
+  t(
+    {
+      id: 'image-color-extractor', name: 'Image Color Extractor', slug: 'image-color-extractor', category: 'image',
+      description: 'Extract the dominant colors from an image.',
+      icon: 'droplet', related: ['color-palette-generator', 'gradient-generator'],
+    },
+    () => import('./tools/image/ImageColorExtractor'),
+  ),
+  t(
+    {
+      id: 'color-palette-generator', name: 'Color Palette Generator', slug: 'color-palette-generator', category: 'design',
+      description: 'Generate harmonious color palettes with HEX, RGB and HSL values.',
+      icon: 'palette', related: ['gradient-generator', 'image-color-extractor'],
+    },
+    () => import('./tools/design/ColorPaletteGenerator'),
+  ),
+  t(
+    {
+      id: 'gradient-generator', name: 'Gradient Generator', slug: 'gradient-generator', category: 'design',
+      description: 'Design beautiful CSS gradients with live preview and export.',
+      icon: 'sliders', related: ['color-palette-generator', 'brand-kit-generator'],
+    },
+    () => import('./tools/design/GradientGenerator'),
+  ),
+  t(
+    {
+      id: 'font-pairing-tool', name: 'Font Pairing Tool', slug: 'font-pairing-tool', category: 'design',
+      description: 'Preview and compare font pairings for your brand.',
+      icon: 'type', related: ['brand-kit-generator', 'gradient-generator'],
+    },
+    () => import('./tools/design/FontPairingTool'),
+  ),
+  t(
+    {
+      id: 'business-card-maker', name: 'Business Card Maker', slug: 'business-card-maker', category: 'design',
+      description: 'Create professional business cards with templates and export.',
+      icon: 'credit-card', related: ['id-card-maker', 'cv-builder'],
+    },
+    () => import('./tools/design/BusinessCardMaker'),
+  ),
+  t(
+    {
+      id: 'id-card-maker', name: 'ID Card Maker', slug: 'id-card-maker', category: 'design',
+      description: 'Create employee and student ID cards with QR codes.',
+      icon: 'id-card', related: ['business-card-maker', 'certificate-maker'],
+    },
+    () => import('./tools/design/IdCardMaker'),
+  ),
+  t(
+    {
+      id: 'certificate-maker', name: 'Certificate Maker', slug: 'certificate-maker', category: 'design',
+      description: 'Create printable certificates and awards.',
+      icon: 'award', related: ['business-card-maker', 'id-card-maker'],
+    },
+    () => import('./tools/design/CertificateMaker'),
+  ),
+  t(
+    {
+      id: 'logo-mockup-generator', name: 'Logo Mockup Generator', slug: 'logo-mockup-generator', category: 'design',
+      description: 'Place your logo onto realistic mockup scenes.',
+      icon: 'layout', related: ['screenshot-mockup-generator', 'brand-kit-generator'],
+    },
+    () => import('./tools/design/LogoMockupGenerator'),
+  ),
+  t(
+    {
+      id: 'screenshot-mockup-generator', name: 'Screenshot Mockup Generator', slug: 'screenshot-mockup-generator', category: 'design',
+      description: 'Put screenshots into device frames.',
+      icon: 'monitor', related: ['logo-mockup-generator', 'social-media-post-maker'],
+    },
+    () => import('./tools/design/ScreenshotMockupGenerator'),
+  ),
+  t(
+    {
+      id: 'social-media-post-maker', name: 'Social Media Post Maker', slug: 'social-media-post-maker', category: 'design',
+      description: 'Design posts for Instagram, Facebook, LinkedIn and more.',
+      icon: 'share-2', related: ['flyer-maker', 'poster-maker'],
+    },
+    () => import('./tools/design/SocialPostMaker'),
+  ),
+  t(
+    {
+      id: 'flyer-maker', name: 'Flyer Maker', slug: 'flyer-maker', category: 'design',
+      description: 'Create printable flyers with text, shapes and images.',
+      icon: 'file-image', related: ['poster-maker', 'social-media-post-maker'],
+    },
+    () => import('./tools/design/FlyerMaker'),
+  ),
+  t(
+    {
+      id: 'poster-maker', name: 'Poster Maker', slug: 'poster-maker', category: 'design',
+      description: 'Design posters in A-series print sizes.',
+      icon: 'image-plus', related: ['flyer-maker', 'certificate-maker'],
+    },
+    () => import('./tools/design/PosterMaker'),
+  ),
+  t(
+    {
+      id: 'letterhead-maker', name: 'Letterhead Maker', slug: 'letterhead-maker', category: 'design',
+      description: 'Create branded letterheads for A4 and US Letter.',
+      icon: 'file', related: ['business-card-maker', 'brand-kit-generator'],
+    },
+    () => import('./tools/design/LetterheadMaker'),
+  ),
+  t(
+    {
+      id: 'brand-kit-generator', name: 'Brand Kit Generator', slug: 'brand-kit-generator', category: 'design',
+      description: 'Assemble your brand colors, fonts and guidelines into one kit.',
+      icon: 'sparkles', related: ['color-palette-generator', 'gradient-generator'],
+    },
+    () => import('./tools/design/BrandKitGenerator'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PDF TOOLS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'pdf-merge', name: 'Merge PDF', slug: 'pdf-merge', category: 'pdf',
+      description: 'Combine multiple PDF files into one document.',
+      icon: 'merge', related: ['pdf-split', 'pdf-compress'],
+    },
+    () => import('./tools/pdf/MergePdf'),
+  ),
+  t(
+    {
+      id: 'pdf-split', name: 'Split PDF', slug: 'pdf-split', category: 'pdf',
+      description: 'Split a PDF into separate page ranges.',
+      icon: 'split', related: ['pdf-merge', 'pdf-extract'],
+    },
+    () => import('./tools/pdf/SplitPdf'),
+  ),
+  t(
+    {
+      id: 'pdf-compress', name: 'Compress PDF', slug: 'pdf-compress', category: 'pdf',
+      description: 'Reduce PDF file size by removing duplicate objects and recompressing streams.',
+      icon: 'file-archive', related: ['pdf-merge', 'pdf-split'],
+      status: 'beta',
+    },
+    () => import('./tools/pdf/CompressPdf'),
+  ),
+  t(
+    {
+      id: 'pdf-to-images', name: 'PDF to Images', slug: 'pdf-to-images', category: 'pdf',
+      description: 'Convert PDF pages into PNG or JPG images.',
+      icon: 'file-image', related: ['images-to-pdf', 'pdf-to-word'],
+    },
+    () => import('./tools/pdf/PdfToImages'),
+  ),
+  t(
+    {
+      id: 'images-to-pdf', name: 'Images to PDF', slug: 'images-to-pdf', category: 'pdf',
+      description: 'Combine multiple images into a single PDF.',
+      icon: 'images', related: ['pdf-to-images', 'pdf-merge'],
+    },
+    () => import('./tools/pdf/ImagesToPdf'),
+  ),
+  t(
+    {
+      id: 'pdf-rotate', name: 'Rotate PDF', slug: 'pdf-rotate', category: 'pdf',
+      description: 'Rotate PDF pages individually or all pages.',
+      icon: 'rotate-cw', related: ['pdf-merge', 'pdf-split'],
+    },
+    () => import('./tools/pdf/RotatePdf'),
+  ),
+  t(
+    {
+      id: 'pdf-reorder', name: 'Reorder PDF', slug: 'pdf-reorder', category: 'pdf',
+      description: 'Change the order of pages in a PDF.',
+      icon: 'arrow-up-down', related: ['pdf-split', 'pdf-delete'],
+    },
+    () => import('./tools/pdf/ReorderPdf'),
+  ),
+  t(
+    {
+      id: 'pdf-delete-pages', name: 'Delete PDF Pages', slug: 'pdf-delete-pages', category: 'pdf',
+      description: 'Remove unwanted pages from a PDF.',
+      icon: 'trash', related: ['pdf-extract', 'pdf-split'],
+    },
+    () => import('./tools/pdf/DeletePdfPages'),
+  ),
+  t(
+    {
+      id: 'pdf-extract', name: 'Extract PDF Pages', slug: 'pdf-extract', category: 'pdf',
+      description: 'Extract selected pages into a new PDF.',
+      icon: 'scissors', related: ['pdf-split', 'pdf-reorder'],
+    },
+    () => import('./tools/pdf/ExtractPdfPages'),
+  ),
+  t(
+    {
+      id: 'pdf-watermark', name: 'Add Watermark', slug: 'pdf-watermark', category: 'pdf',
+      description: 'Add a text watermark to PDF pages.',
+      icon: 'stamp', related: ['pdf-merge', 'pdf-compress'],
+      status: 'beta',
+    },
+    () => import('./tools/pdf/PdfWatermark'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ BUSINESS TOOLS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'invoice-generator', name: 'Invoice Generator', slug: 'invoice-generator', category: 'business',
+      description: 'Create professional invoices with automatic calculations and PDF export.',
+      seoTitle: 'Invoice Generator - Free PDF Invoices', seoDescription: 'Generate and download professional invoices free.',
+      icon: 'receipt', related: ['quotation-generator', 'receipt-generator'],
+    },
+    () => import('./tools/business/InvoiceGenerator'),
+  ),
+  t(
+    {
+      id: 'quotation-generator', name: 'Quotation Generator', slug: 'quotation-generator', category: 'business',
+      description: 'Create professional quotations for your customers.',
+      icon: 'file-text', related: ['invoice-generator', 'receipt-generator'],
+    },
+    () => import('./tools/business/QuotationGenerator'),
+  ),
+  t(
+    {
+      id: 'receipt-generator', name: 'Receipt Generator', slug: 'receipt-generator', category: 'business',
+      description: 'Generate receipts for cash, card, M-Pesa and other payment methods.',
+      icon: 'hand-coins', related: ['invoice-generator', 'payment-voucher'],
+    },
+    () => import('./tools/business/ReceiptGenerator'),
+  ),
+  t(
+    {
+      id: 'payment-voucher', name: 'Payment Voucher', slug: 'payment-voucher', category: 'business',
+      description: 'Create payment vouchers with signature fields.',
+      icon: 'banknote', related: ['receipt-generator', 'invoice-generator'],
+    },
+    () => import('./tools/business/PaymentVoucher'),
+  ),
+  t(
+    {
+      id: 'cv-builder', name: 'Resume / CV Builder', slug: 'cv-builder', category: 'business',
+      description: 'Build a professional ATS-friendly CV and export to PDF.',
+      seoTitle: 'Free CV Builder - Resume Creator', icon: 'user-round', related: ['business-card-maker', 'cover-letter'],
+    },
+    () => import('./tools/business/CvBuilder'),
+  ),
+  t(
+    {
+      id: 'digital-business-card', name: 'Digital Business Card', slug: 'digital-business-card', category: 'business',
+      description: 'Create a shareable contact profile with a QR code.',
+      icon: 'contact', related: ['link-in-bio', 'qr-generator'],
+    },
+    () => import('./tools/business/DigitalBusinessCard'),
+  ),
+  t(
+    {
+      id: 'link-in-bio', name: 'Link-in-Bio Builder', slug: 'link-in-bio', category: 'business',
+      description: 'Build a mini landing page for all your links.',
+      icon: 'link', related: ['digital-business-card', 'menu-builder'],
+    },
+    () => import('./tools/business/LinkInBio'),
+  ),
+  t(
+    {
+      id: 'menu-builder', name: 'MenuForge', slug: 'menu-builder', category: 'business',
+      description: 'Create a digital restaurant menu with QR sharing.',
+      icon: 'utensils', related: ['digital-business-card', 'qr-generator'],
+    },
+    () => import('./tools/business/MenuBuilder'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DEVELOPER TOOLS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'json-formatter', name: 'JSON Formatter', slug: 'json-formatter', category: 'developer',
+      description: 'Format, validate and beautify JSON data.',
+      icon: 'braces', related: ['json-validator', 'json-minifier'],
+    },
+    () => import('./tools/dev/JsonFormatter'),
+  ),
+  t(
+    {
+      id: 'json-validator', name: 'JSON Validator', slug: 'json-validator', category: 'developer',
+      description: 'Validate JSON and get detailed error messages.',
+      icon: 'check-check', related: ['json-formatter', 'json-minifier'],
+    },
+    () => import('./tools/dev/JsonValidator'),
+  ),
+  t(
+    {
+      id: 'json-minifier', name: 'JSON Minifier', slug: 'json-minifier', category: 'developer',
+      description: 'Minify JSON to reduce payload size.',
+      icon: 'shrink', related: ['json-formatter', 'json-validator'],
+    },
+    () => import('./tools/dev/JsonMinifier'),
+  ),
+  t(
+    {
+      id: 'base64-encoder', name: 'Base64 Encoder', slug: 'base64-encoder', category: 'developer',
+      description: 'Encode text or files to Base64.',
+      icon: 'binary', related: ['base64-decoder', 'url-encoder'],
+    },
+    () => import('./tools/dev/Base64Encoder'),
+  ),
+  t(
+    {
+      id: 'base64-decoder', name: 'Base64 Decoder', slug: 'base64-decoder', category: 'developer',
+      description: 'Decode Base64 strings to text.',
+      icon: 'binary', related: ['base64-encoder', 'url-decoder'],
+    },
+    () => import('./tools/dev/Base64Decoder'),
+  ),
+  t(
+    {
+      id: 'url-encoder', name: 'URL Encoder', slug: 'url-encoder', category: 'developer',
+      description: 'Percent-encode URLs and query strings.',
+      icon: 'link', related: ['url-decoder', 'url-parser'],
+    },
+    () => import('./tools/dev/UrlEncoder'),
+  ),
+  t(
+    {
+      id: 'url-decoder', name: 'URL Decoder', slug: 'url-decoder', category: 'developer',
+      description: 'Decode percent-encoded URLs.',
+      icon: 'unlink', related: ['url-encoder', 'url-parser'],
+    },
+    () => import('./tools/dev/UrlDecoder'),
+  ),
+  t(
+    {
+      id: 'uuid-generator', name: 'UUID Generator', slug: 'uuid-generator', category: 'developer',
+      description: 'Generate random UUIDs (v4) in bulk.',
+      icon: 'key-round', related: ['password-generator', 'hash-generator'],
+    },
+    () => import('./tools/dev/UuidGenerator'),
+  ),
+  t(
+    {
+      id: 'password-generator', name: 'Password Generator', slug: 'password-generator', category: 'developer',
+      description: 'Generate strong random passwords with configurable options.',
+      icon: 'key', related: ['uuid-generator', 'hash-generator'],
+    },
+    () => import('./tools/dev/PasswordGenerator'),
+  ),
+  t(
+    {
+      id: 'hash-generator', name: 'Hash Generator', slug: 'hash-generator', category: 'developer',
+      description: 'Generate SHA-1, SHA-256 and SHA-512 hashes.',
+      icon: 'hash', related: ['password-generator', 'jwt-decoder'],
+    },
+    () => import('./tools/dev/HashGenerator'),
+  ),
+  t(
+    {
+      id: 'regex-tester', name: 'Regex Tester', slug: 'regex-tester', category: 'developer',
+      description: 'Test regular expressions against sample text.',
+      icon: 'regex', related: ['json-formatter', 'html-formatter'],
+    },
+    () => import('./tools/dev/RegexTester'),
+  ),
+  t(
+    {
+      id: 'timestamp-converter', name: 'Timestamp Converter', slug: 'timestamp-converter', category: 'developer',
+      description: 'Convert between Unix timestamps and dates.',
+      icon: 'clock', related: ['date-calculator', 'timezone-converter'],
+    },
+    () => import('./tools/dev/TimestampConverter'),
+  ),
+  t(
+    {
+      id: 'markdown-previewer', name: 'Markdown Previewer', slug: 'markdown-previewer', category: 'developer',
+      description: 'Write markdown and see a live preview.',
+      icon: 'file-type', related: ['html-formatter', 'text-diff'],
+    },
+    () => import('./tools/dev/MarkdownPreviewer'),
+  ),
+  t(
+    {
+      id: 'jwt-decoder', name: 'JWT Decoder', slug: 'jwt-decoder', category: 'developer',
+      description: 'Decode JWT header and payload without sending it anywhere.',
+      icon: 'shield-check', related: ['base64-decoder', 'hash-generator'],
+    },
+    () => import('./tools/dev/JwtDecoder'),
+  ),
+  t(
+    {
+      id: 'lorem-ipsum-generator', name: 'Lorem Ipsum Generator', slug: 'lorem-ipsum-generator', category: 'developer',
+      description: 'Generate placeholder text, words or sentences.',
+      icon: 'text-cursor', related: ['word-counter', 'md-icon'],
+    },
+    () => import('./tools/dev/LoremIpsumGenerator'),
+  ),
+  t(
+    {
+      id: 'html-formatter', name: 'HTML Formatter', slug: 'html-formatter', category: 'developer',
+      description: 'Beautify minified HTML.',
+      icon: 'code-xml', related: ['css-formatter', 'javascript-formatter'],
+    },
+    () => import('./tools/dev/HtmlFormatter'),
+  ),
+  t(
+    {
+      id: 'css-formatter', name: 'CSS Formatter', slug: 'css-formatter', category: 'developer',
+      description: 'Beautify minified CSS.',
+      icon: 'palette', related: ['html-formatter', 'javascript-formatter'],
+    },
+    () => import('./tools/dev/CssFormatter'),
+  ),
+  t(
+    {
+      id: 'javascript-formatter', name: 'JavaScript Formatter', slug: 'javascript-formatter', category: 'developer',
+      description: 'Beautify minified JavaScript.',
+      icon: 'file-code', related: ['html-formatter', 'css-formatter'],
+    },
+    () => import('./tools/dev/JsFormatter'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ TEXT TOOLS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'word-counter', name: 'Word Counter', slug: 'word-counter', category: 'text',
+      description: 'Count words, characters, sentences and reading time.',
+      icon: 'align-left', related: ['case-converter', 'text-diff'],
+    },
+    () => import('./tools/text/WordCounter'),
+  ),
+  t(
+    {
+      id: 'character-counter', name: 'Character Counter', slug: 'character-counter', category: 'text',
+      description: 'Count characters, words and paragraphs with live stats.',
+      icon: 'text', related: ['word-counter', 'case-converter'],
+    },
+    () => import('./tools/text/CharacterCounter'),
+  ),
+  t(
+    {
+      id: 'case-converter', name: 'Case Converter', slug: 'case-converter', category: 'text',
+      description: 'Convert text to lowercase, UPPERCASE, Title Case and more.',
+      icon: 'case-sensitive', related: ['word-counter', 'slug-generator'],
+    },
+    () => import('./tools/text/CaseConverter'),
+  ),
+  t(
+    {
+      id: 'remove-duplicate-lines', name: 'Remove Duplicate Lines', slug: 'remove-duplicate-lines', category: 'text',
+      description: 'Remove duplicate lines while preserving order.',
+      icon: 'search-x', related: ['text-sorter', 'text-cleaner'],
+    },
+    () => import('./tools/text/RemoveDuplicates'),
+  ),
+  t(
+    {
+      id: 'text-sorter', name: 'Text Sorter', slug: 'text-sorter', category: 'text',
+      description: 'Sort lines alphabetically or numerically.',
+      icon: 'sort-asc', related: ['remove-duplicate-lines', 'text-cleaner'],
+    },
+    () => import('./tools/text/TextSorter'),
+  ),
+  t(
+    {
+      id: 'text-cleaner', name: 'Text Cleaner', slug: 'text-cleaner', category: 'text',
+      description: 'Clean whitespace, trim lines and normalize text.',
+      icon: 'spray-can', related: ['text-sorter', 'case-converter'],
+    },
+    () => import('./tools/text/TextCleaner'),
+  ),
+  t(
+    {
+      id: 'slug-generator', name: 'Slug Generator', slug: 'slug-generator', category: 'text',
+      description: 'Generate URL-friendly slugs from any text.',
+      icon: 'hash', related: ['case-converter', 'url-encoder'],
+    },
+    () => import('./tools/text/SlugGenerator'),
+  ),
+  t(
+    {
+      id: 'text-diff', name: 'Text Diff', slug: 'text-diff', category: 'text',
+      description: 'Compare two texts and see the differences.',
+      icon: 'diff', related: ['word-counter', 'text-cleaner'],
+    },
+    () => import('./tools/text/TextDiff'),
+  ),
+  t(
+    {
+      id: 'find-replace', name: 'Find & Replace', slug: 'find-replace', category: 'text',
+      description: 'Find and replace text with regex support.',
+      icon: 'search', related: ['text-cleaner', 'case-converter'],
+    },
+    () => import('./tools/text/FindReplace'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PRODUCTIVITY Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'pomodoro-timer', name: 'Pomodoro Timer', slug: 'pomodoro-timer', category: 'productivity',
+      description: 'Stay focused with a Pomodoro timer.',
+      icon: 'timer', related: ['stopwatch', 'countdown-timer'],
+    },
+    () => import('./tools/productivity/PomodoroTimer'),
+  ),
+  t(
+    {
+      id: 'stopwatch', name: 'Stopwatch', slug: 'stopwatch', category: 'productivity',
+      description: 'Precision stopwatch with lap times.',
+      icon: 'watch', related: ['countdown-timer', 'pomodoro-timer'],
+    },
+    () => import('./tools/productivity/Stopwatch'),
+  ),
+  t(
+    {
+      id: 'countdown-timer', name: 'Countdown Timer', slug: 'countdown-timer', category: 'productivity',
+      description: 'Count down to a target time.',
+      icon: 'hourglass', related: ['pomodoro-timer', 'stopwatch'],
+    },
+    () => import('./tools/productivity/CountdownTimer'),
+  ),
+  t(
+    {
+      id: 'date-calculator', name: 'Date Calculator', slug: 'date-calculator', category: 'productivity',
+      description: 'Calculate date differences and add/subtract days.',
+      icon: 'calendar', related: ['age-calculator', 'timezone-converter'],
+    },
+    () => import('./tools/productivity/DateCalculator'),
+  ),
+  t(
+    {
+      id: 'age-calculator', name: 'Age Calculator', slug: 'age-calculator', category: 'productivity',
+      description: 'Calculate exact age in years, months and days.',
+      icon: 'cake', related: ['date-calculator', 'percentage-calculator'],
+    },
+    () => import('./tools/productivity/AgeCalculator'),
+  ),
+  t(
+    {
+      id: 'percentage-calculator', name: 'Percentage Calculator', slug: 'percentage-calculator', category: 'productivity',
+      description: 'Percentages, discounts and percent-change calculations.',
+      icon: 'percent', related: ['tip-calculator', 'unit-converter'],
+    },
+    () => import('./tools/productivity/PercentageCalculator'),
+  ),
+  t(
+    {
+      id: 'tip-calculator', name: 'Tip Calculator', slug: 'tip-calculator', category: 'productivity',
+      description: 'Split bills and calculate tips.',
+      icon: 'coins', related: ['percentage-calculator', 'currency-converter'],
+    },
+    () => import('./tools/productivity/TipCalculator'),
+  ),
+  t(
+    {
+      id: 'unit-converter', name: 'Unit Converter', slug: 'unit-converter', category: 'productivity',
+      description: 'Convert length, weight, temperature, volume and more.',
+      icon: 'ruler', related: ['currency-converter', 'timezone-converter'],
+    },
+    () => import('./tools/productivity/UnitConverter'),
+  ),
+  t(
+    {
+      id: 'currency-converter', name: 'Currency Converter', slug: 'currency-converter', category: 'productivity',
+      description: 'Convert between world currencies with live or manual rates.',
+      icon: 'banknote', related: ['unit-converter', 'tip-calculator'],
+    },
+    () => import('./tools/productivity/CurrencyConverter'),
+  ),
+  t(
+    {
+      id: 'timezone-converter', name: 'Time Zone Converter', slug: 'timezone-converter', category: 'productivity',
+      description: 'Compare times across different time zones.',
+      icon: 'globe', related: ['date-calculator', 'timestamp-converter'],
+    },
+    () => import('./tools/productivity/TimezoneConverter'),
+  ),
+  t(
+    {
+      id: 'qr-scanner', name: 'QR Scanner', slug: 'qr-scanner', category: 'productivity',
+      description: 'Scan QR codes using your camera or an image.',
+      icon: 'scan-line', related: ['qr-generator', 'dynamic-qr'],
+    },
+    () => import('./tools/qr/QrScannerPage'),
+  ),
+  t(
+    {
+      id: 'checklist-maker', name: 'Checklist Maker', slug: 'checklist-maker', category: 'productivity',
+      description: 'Create checklists with progress tracking.',
+      icon: 'list-checks', related: ['get-started', 'pomodoro-timer'],
+    },
+    () => import('./tools/productivity/ChecklistMaker'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ WEB TOOLS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'meta-tag-generator', name: 'Meta Tag Generator', slug: 'meta-tag-generator', category: 'web',
+      description: 'Generate SEO meta tags for your web pages.',
+      icon: 'file-code', related: ['open-graph-generator', 'robots-txt-generator'],
+    },
+    () => import('./tools/web/MetaTagGenerator'),
+  ),
+  t(
+    {
+      id: 'open-graph-generator', name: 'Open Graph Generator', slug: 'open-graph-generator', category: 'web',
+      description: 'Generate Open Graph tags for social sharing.',
+      icon: 'share-2', related: ['meta-tag-generator', 'sitemap-generator'],
+    },
+    () => import('./tools/web/OpenGraphGenerator'),
+  ),
+  t(
+    {
+      id: 'robots-txt-generator', name: 'Robots.txt Generator', slug: 'robots-txt-generator', category: 'web',
+      description: 'Generate standard robots.txt files.',
+      icon: 'bot', related: ['sitemap-generator', 'meta-tag-generator'],
+    },
+    () => import('./tools/web/RobotsTxtGenerator'),
+  ),
+  t(
+    {
+      id: 'sitemap-generator', name: 'Sitemap Generator', slug: 'sitemap-generator', category: 'web',
+      description: 'Generate XML sitemaps from a list of URLs.',
+      icon: 'map', related: ['robots-txt-generator', 'url-parser'],
+    },
+    () => import('./tools/web/SitemapGenerator'),
+  ),
+  t(
+    {
+      id: 'url-parser', name: 'URL Parser', slug: 'url-parser', category: 'web',
+      description: 'Break down any URL into its components.',
+      icon: 'link', related: ['url-encoder', 'url-decoder'],
+    },
+    () => import('./tools/web/UrlParser'),
+  ),
+  t(
+    {
+      id: 'http-header-viewer', name: 'HTTP Header Viewer', slug: 'http-header-viewer', category: 'web',
+      description: 'Inspect HTTP response headers for any URL.',
+      icon: 'list-tree', related: ['url-parser', 'website-performance-checker'],
+      status: 'beta',
+    },
+    () => import('./tools/web/HttpHeaderViewer'),
+  ),
+  t(
+    {
+      id: 'website-performance-checker', name: 'Website Performance Checker', slug: 'website-performance-checker', category: 'web',
+      description: 'Measure page size, count and response time for any URL.',
+      icon: 'gauge', related: ['http-header-viewer', 'url-parser'],
+      status: 'beta',
+    },
+    () => import('./tools/web/WebsitePerformanceChecker'),
+  ),
+  t(
+    {
+      id: 'url-shortener', name: 'URL Shortener', slug: 'url-shortener', category: 'web',
+      description: 'Shorten URLs with your own slug.',
+      icon: 'scissors', related: ['dynamic-qr', 'qr-generator'],
+      status: 'beta',
+    },
+    () => import('./tools/web/UrlShortener'),
+  ),
+  t(
+    {
+      id: 'qr-scanner-web', name: 'QR Code Reader', slug: 'qr-code-reader', category: 'qr',
+      description: 'Read QR codes from any image file.',
+      icon: 'scan', related: ['qr-generator', 'dynamic-qr'],
+    },
+    () => import('./tools/qr/QrScannerPage'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ QR PLATFORM Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'dynamic-qr', name: 'Dynamic QR', slug: 'dynamic-qr', category: 'qr',
+      description: 'Create QR codes that redirect through Zed and can be edited later.',
+      status: 'beta',
+      icon: 'refresh-cw', related: ['qr-generator', 'qr-landing-page'],
+    },
+    () => import('./tools/qr/DynamicQrPage'),
+  ),
+  t(
+    {
+      id: 'whatsapp-qr', name: 'WhatsApp QR', slug: 'whatsapp-qr', category: 'qr',
+      description: 'QR code that opens a WhatsApp chat with a message.',
+      icon: 'message-circle', related: ['qr-generator', 'digital-business-card'],
+    },
+    () => import('./tools/qr/WhatsAppQr'),
+  ),
+  t(
+    {
+      id: 'wifi-qr', name: 'Wi-Fi QR', slug: 'wifi-qr', category: 'qr',
+      description: 'QR code that connects phones to your Wi-Fi network.',
+      icon: 'wifi', related: ['qr-generator', 'qr-landing-page'],
+    },
+    () => import('./tools/qr/WifiQr'),
+  ),
+  t(
+    {
+      id: 'vcard-qr', name: 'vCard QR', slug: 'vcard-qr', category: 'qr',
+      description: 'QR code containing a contact card (vCard).',
+      icon: 'contact', related: ['qr-generator', 'digital-business-card'],
+    },
+    () => import('./tools/qr/VcardQr'),
+  ),
+
+  // Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ DYNAMIC QR EXTRA Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
+  t(
+    {
+      id: 'qr-landing-page', name: 'QR Landing Page', slug: 'qr-landing-page', category: 'qr',
+      description: 'Build a landing page your QR redirects to.',
+      status: 'beta',
+      icon: 'layout-dashboard', related: ['dynamic-qr', 'link-in-bio'],
+    },
+    () => import('./tools/qr/QrLandingPage'),
+  ),
+  t(
+    {
+      id: 'm-pesa-qr', name: 'M-Pesa Instruction QR', slug: 'm-pesa-qr', category: 'qr',
+      description: 'QR plus printable M-Pesa till and paybill card.',
+      icon: 'smartphone', related: ['qr-generator', 'receipt-generator'],
+    },
+    () => import('./tools/qr/MPesaQr'),
+  ),
+]
+
+export const getTool = (slug: string): Tool | undefined =>
+  TOOLS.find((tool) => tool.slug === slug)
+
+export const getToolById = (id: string): Tool | undefined =>
+  TOOLS.find((tool) => tool.id === id)
+
+export const getCategoryTools = (category: ToolCategoryId): Tool[] =>
+  TOOLS.filter((tool) => tool.category === category)
+
+export const getCategories = () =>
+  Object.entries(CATEGORY_META).map(([id, meta]) => ({ id: id as ToolCategoryId, ...meta }))
+
+export const getToolGroups = () => {
+  const groups: Record<string, Tool[]> = {}
+  for (const tool of TOOLS) {
+    if (tool.status === 'disabled') continue
+    if (!groups[tool.category]) groups[tool.category] = []
+    groups[tool.category].push(tool)
+  }
+  return groups
+}
+
+export const searchTools = (query: string): Tool[] => {
+  const q = query.toLowerCase().trim()
+  if (!q) return []
+  const scored = TOOLS.filter((tool) => tool.status !== 'disabled').map((tool) => {
+    const name = tool.name.toLowerCase()
+    const description = tool.description.toLowerCase()
+    const id = tool.id.replace(/-/g, ' ').toLowerCase()
+    let score = 0
+    if (name === q) score += 100
+    if (name.startsWith(q)) score += 50
+    if (name.includes(q)) score += 30
+    if (id.startsWith(q)) score += 20
+    if (description.includes(q)) score += 10
+    if (itemFuzzy(q, name)) score += 15
+    return { tool, score }
+  })
+  return scored
+    .filter((entry) => entry.score > 0)
+    .sort((a, b) => b.score - a.score)
+    .map((entry) => entry.tool)
+}
+
+export function itemFuzzy(query: string, text: string): boolean {
+  let qi = 0
+  for (let i = 0; i < text.length && qi < query.length; i++) {
+    if (text[i] === query[qi]) qi++
+  }
+  return qi === query.length && query.length >= 3
+}
+
+export const POPULAR_TOOL_SLUGS = [
+  'qr-generator',
+  'background-remover',
+  'image-compressor',
+  'pdf-merge',
+  'invoice-generator',
+  'image-resizer',
+  'cv-builder',
+  'business-card-maker',
+  'password-generator',
+  'image-converter',
+]
+
+export const getPopularTools = (limit = 8): Tool[] =>
+  POPULAR_TOOL_SLUGS.map((slug) => getTool(slug))
+    .filter((tool): tool is Tool => Boolean(tool))
+    .slice(0, limit)
+
+export const getRelatedTools = (tool: Tool, limit = 4): Tool[] => {
+  const related =
+    tool.related?.map((slug) => getTool(slug)).filter((x): x is Tool => Boolean(x)) ?? []
+  const byCategory = getCategoryTools(tool.category)
+    .filter((x) => x.id !== tool.id && !related.find((r) => r.id === x.id))
+  return [...related, ...byCategory].slice(0, limit)
+}
