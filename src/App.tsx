@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useState, type ComponentType } from 'react'
 import { HashRouter, Link, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import {
   ArrowRight, Check, ChevronRight, Command, Moon, Search, Sparkles, Sun,
@@ -161,7 +161,7 @@ function ToolPage() {
   const { slug } = useParams()
   const tool = slug ? getTool(slug) : undefined
   const navigate = useNavigate()
-  const [Component, setComponent] = useState<React.ComponentType | null>(null)
+  const [Component, setComponent] = useState<ComponentType | null>(null)
   const [error, setError] = useState(false)
 
   useEffect(() => {
