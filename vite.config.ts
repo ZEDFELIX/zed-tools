@@ -3,6 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
+  base: '/zed-tools/',
   plugins: [react(), tailwindcss()],
   build: {
     chunkSizeWarningLimit: 1200,
