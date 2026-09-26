@@ -1,8 +1,6 @@
 import { useState } from 'react'
 import type { ReactNode } from 'react'
 import { Star } from 'lucide-react'
-import { cx } from '../lib/utils'
-
 export function Field({
   label,
   hint,
@@ -198,6 +196,8 @@ export function ProgressBar({ value }: { value: number }) {
     </div>
   )
 }
+export const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ')
+
 export function Export({ text, filename = 'export.txt', mime = 'text/plain' }: { text: string; filename?: string; mime?: string }) {
   const blob = new Blob([text], { type: mime })
   const url = URL.createObjectURL(blob)
