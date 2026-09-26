@@ -1,3 +1,4 @@
+import { createElement } from 'react'
 import type { Tool, ToolCategoryId } from './types'
 import ToolRuntime from './tools/ToolRuntime'
 import { CATEGORY_META } from './categoryMeta'
@@ -9,7 +10,7 @@ const t = (
   status: 'production',
   processing: { local: 'Processing happens entirely in your browser. Files never leave your device.' },
   ...base,
-  component: () => Promise.resolve({ default: () => <ToolRuntime toolId={String(base.id)} /> }),
+  component: () => Promise.resolve({ default: () => createElement(ToolRuntime, { toolId: String(base.id) }) }),
 })
 
 const TOOLS: Tool[] = [
