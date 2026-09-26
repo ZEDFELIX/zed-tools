@@ -170,19 +170,29 @@ function DocumentTool({toolId}:{toolId:string}) {
 }
 
 function PdfTool({toolId}:{toolId:string}) {
-  const {file,input:fileInput}=useFile(); const [result,setResult]=useState('')
+  const {file,input:fileInput}=useFile(); const [files,setFiles]=useState<File[]>([]); const [pages,setPages]=useState(''); const [result,setResult]=useState('')
   const run=async()=>{
-    if(!file)return
     try{
-      const src=await PDFDocument.load(await file.arrayBuffer()); const out=await PDFDocument.create()
-      if(toolId==='pdf-merge'){const copy=await out.copyPages(src,src.getPageIndices());copy.forEach(p=>out.addPage(p))}
-      else if(toolId==='pdf-rotate'){const copy=await out.copyPages(src,src.getPageIndices());copy.forEach(p=>{p.setRotation(degrees(90));out.addPage(p)})}
-      else if(toolId==='pdf-delete-pages'){const keep=src.getPageIndices().filter(i=>i!==0);const copy=await out.copyPages(src,keep);copy.forEach(p=>out.addPage(p))}
-      else {const copy=await out.copyPages(src,src.getPageIndices().slice(0,1));copy.forEach(p=>out.addPage(p))}
-      const bytes=await out.save(); downloadBlob(new Blob([bytes as unknown as BlobPart],{type:'application/pdf'}),`${toolId}.pdf`);setResult('PDF generated successfully.')
+      if(toolId==='images-to-pdf'){
+        const selected=files; if(!selected.length)return
+        const doc=new jsPDF()
+        for(let i=0;i<selected.length;i++){const img=await loadImage(selected[i]);const w=190,h=w*img.naturalHeight/img.naturalWidth;if(i)doc.addPage();doc.addImage(img,'JPEG',10,10,w,Math.min(275,h))}
+        downloadBlob(doc.output('blob'),'images-to-pdf.pdf');setResult('PDF created.')
+        return
+      }
+      if(!file)return
+      const src=await PDFDocument.load(await file.arrayBuffer()), indices=src.getPageIndices()
+      let selected=indices
+      if(pages.trim()) selected=pages.split(',').flatMap(part=>{const [s,e]=part.trim().split('-').map(Number);const from=Math.max(1,s||1),to=Math.min(indices.length,e||s||1);return Array.from({length:Math.max(0,to-from+1)},(_,i)=>from+i-1)}).filter(i=>i>=0&&i<indices.length)
+      if(toolId==='pdf-delete-pages') selected=indices.filter(i=>!selected.includes(i))
+      if(toolId==='pdf-reorder') selected=[...selected].reverse()
+      if(toolId==='pdf-split'||toolId==='pdf-extract') selected=selected.length?selected:[0]
+      const out=await PDFDocument.create(); const copy=await out.copyPages(src,selected)
+      copy.forEach((p,i)=>{if(toolId==='pdf-rotate')p.setRotation(degrees(90));out.addPage(p)})
+      const bytes=await out.save();downloadBlob(new Blob([bytes as unknown as BlobPart],{type:'application/pdf'}),`${toolId}.pdf`);setResult(`Processed ${selected.length} page(s).`)
     }catch(e){setResult(e instanceof Error?e.message:String(e))}
   }
-  return <Layout>{fileInput}<button className={btn} disabled={!file} onClick={run}>Process PDF</button><div className={card}>{result||'Select a PDF.'}</div></Layout>
+  return <Layout>{toolId==='images-to-pdf'?<input className={input} type="file" accept="image/*" multiple onChange={e=>setFiles(Array.from(e.target.files??[]))}/>:fileInput}<Field label="Pages (e.g. 1-3,5)"><input className={input} value={pages} onChange={e=>setPages(e.target.value)} placeholder="Leave blank for all pages"/></Field><button className={btn} disabled={toolId==='images-to-pdf'?!files.length:!file} onClick={run}>{toolId==='images-to-pdf'?'Create PDF':'Process PDF'}</button><div className={card}>{result||'Choose your files to begin.'}</div></Layout>
 }
 
 function WebTool({toolId}:{toolId:string}) {
