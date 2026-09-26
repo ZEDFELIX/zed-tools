@@ -1,4 +1,4 @@
-import { useMemo, useRef, useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 import { jsPDF } from 'jspdf'
 import { PDFDocument, degrees } from 'pdf-lib'
@@ -35,7 +35,7 @@ function loadImage(file: File): Promise<HTMLImageElement> {
     img.onerror=reject; img.src=URL.createObjectURL(file)
   })
 }
-function Field({label,children}:{label:string,children:React.ReactNode}) {
+function Field({label,children}:{label:string,children:ReactNode}) {
   return <label className="block space-y-1"><span className="text-xs font-medium text-slate-500">{label}</span>{children}</label>
 }
 function Layout({children}:{children:React.ReactNode}) {
@@ -168,7 +168,7 @@ function PdfTool({toolId}:{toolId:string}) {
       else if(toolId==='pdf-rotate'){const copy=await out.copyPages(src,src.getPageIndices());copy.forEach(p=>{p.setRotation(degrees(90));out.addPage(p)})}
       else if(toolId==='pdf-delete-pages'){const keep=src.getPageIndices().filter(i=>i!==0);const copy=await out.copyPages(src,keep);copy.forEach(p=>out.addPage(p))}
       else {const copy=await out.copyPages(src,src.getPageIndices().slice(0,1));copy.forEach(p=>out.addPage(p))}
-      downloadBlob(new Blob([await out.save()],{type:'application/pdf'}),`${toolId}.pdf`);setResult('PDF generated successfully.')
+      const bytes=await out.save(); downloadBlob(new Blob([bytes as unknown as BlobPart],{type:'application/pdf'}),`${toolId}.pdf`);setResult('PDF generated successfully.')
     }catch(e){setResult(e instanceof Error?e.message:String(e))}
   }
   return <Layout>{fileInput}<button className={btn} disabled={!file} onClick={run}>Process PDF</button><div className={card}>{result||'Select a PDF.'}</div></Layout>
