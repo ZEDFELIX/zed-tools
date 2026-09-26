@@ -98,6 +98,7 @@ function DeveloperTool({toolId}:{toolId:string}) {
       } else if(toolId==='timestamp-converter') {
         const n=Number(value); setResult(Number.isFinite(n)?new Date(n<1e12?n*1000:n).toISOString():new Date(value).getTime().toString())
       } else if(toolId==='url-parser') { const u=new URL(value); setResult(JSON.stringify({href:u.href,protocol:u.protocol,host:u.host,path:u.pathname,query:u.search,hash:u.hash},null,2)) }
+      else if(toolId==='jwt-decoder') { const parts=value.trim().split('.'); if(parts.length!==3) throw new Error('Invalid JWT: expected three segments.'); const decode=(s:string)=>JSON.parse(decodeURIComponent(escape(atob(s.replace(/-/g,'+').replace(/_/g,'/'))))); setResult(JSON.stringify({header:decode(parts[0]),payload:decode(parts[1]),signature:parts[2]},null,2)) }
       else setResult(value)
     } catch(e){setResult(e instanceof Error?e.message:String(e))}
   }
