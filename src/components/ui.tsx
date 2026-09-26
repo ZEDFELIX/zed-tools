@@ -209,6 +209,3 @@ export function FileUploader({ types, multiple, onFiles }: { types?: string; mul
   return (<input type='file' accept={types} multiple={multiple} onChange={(e) => { if (e.target.files) onFiles(Array.from(e.target.files)) }} className='block w-full text-sm text-gray-500 file:mr-4 file:rounded-md file:border-0 file:bg-indigo-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-indigo-700' />)
 }
 
-
-export const cx = (...classes: Array<string | false | null | undefined>) => classes.filter(Boolean).join(' ')
-
