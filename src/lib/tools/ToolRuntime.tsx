@@ -1,5 +1,6 @@
 import { useState, type ReactNode } from 'react'
 import QRCode from 'qrcode'
+import jsQR from 'jsqr'
 import { jsPDF } from 'jspdf'
 import { PDFDocument, degrees } from 'pdf-lib'
 
@@ -135,16 +136,26 @@ function ImageTool({toolId}:{toolId:string}) {
 }
 
 function QRTool({toolId}:{toolId:string}) {
-  const [value,setValue]=useState(''),[url,setUrl]=useState('')
-  const [extra,setExtra]=useState('')
+  const {file,input:fileInput}=useFile()
+  const [value,setValue]=useState(''),[url,setUrl]=useState(''),[extra,setExtra]=useState(''),[result,setResult]=useState('')
+  const scanner=toolId==='qr-scanner'||toolId==='qr-scanner-web'
   const run=async()=>{
+    if(scanner){
+      if(!file)return
+      const img=await loadImage(file), canvas=document.createElement('canvas')
+      canvas.width=img.naturalWidth; canvas.height=img.naturalHeight
+      const ctx=canvas.getContext('2d')!; ctx.drawImage(img,0,0)
+      const d=ctx.getImageData(0,0,canvas.width,canvas.height), code=jsQR(d.data,d.width,d.height)
+      setResult(code?.data??'No QR code found'); return
+    }
     let payload=value
     if(toolId==='whatsapp-qr') payload=`https://wa.me/${value.replace(/\D/g,'')}?${extra?`text=${encodeURIComponent(extra)}`:''}`
     if(toolId==='wifi-qr') payload=`WIFI:T:WPA;S:${value};P:${extra};;`
     if(toolId==='vcard-qr') payload=`BEGIN:VCARD\\nVERSION:3.0\\nFN:${value}\\nTEL:${extra}\\nEND:VCARD`
-    setUrl(await QRCode.toDataURL(payload,{width:600,margin:2}))
+    setUrl(await QRCode.toDataURL(payload,{width:600,margin:2})); setResult(payload)
   }
-  return <Layout><Field label={toolId==='wifi-qr'?'Wi-Fi name / SSID':toolId==='vcard-qr'?'Full name':'Text or URL'}><input className={input} value={value} onChange={e=>setValue(e.target.value)}/></Field><Field label={toolId==='wifi-qr'?'Wi-Fi password':toolId==='vcard-qr'?'Phone': 'Optional message'}><input className={input} value={extra} onChange={e=>setExtra(e.target.value)}/></Field><button className={btn} onClick={run}>Generate QR</button>{url&&<div className={card}><img src={url} className="mx-auto w-80"/><button className={btn+' mt-3'} onClick={()=>downloadDataUrl(url,`${toolId}.png`)}>Download PNG</button></div>}</Layout>
+  if(scanner)return <Layout>{fileInput}<button className={btn} disabled={!file} onClick={run}>Scan QR</button><div className={card}>{result||'Select a QR image.'}</div></Layout>
+  return <Layout><Field label={toolId==='wifi-qr'?'Wi-Fi name / SSID':toolId==='vcard-qr'?'Full name':'Text or URL'}><input className={input} value={value} onChange={e=>setValue(e.target.value)}/></Field><Field label={toolId==='wifi-qr'?'Wi-Fi password':toolId==='vcard-qr'?'Phone':'Optional message'}><input className={input} value={extra} onChange={e=>setExtra(e.target.value)}/></Field><button className={btn} onClick={run}>Generate QR</button>{url&&<div className={card}><img src={url} className="mx-auto w-80"/><button className={btn+' mt-3'} onClick={()=>downloadDataUrl(url,`${toolId}.png`)}>Download PNG</button></div>}</Layout>
 }
 
 function DocumentTool({toolId}:{toolId:string}) {
