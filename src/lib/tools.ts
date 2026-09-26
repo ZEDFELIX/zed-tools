@@ -1,14 +1,15 @@
 import type { Tool, ToolCategoryId } from './types'
+import ToolRuntime from './tools/ToolRuntime'
 import { CATEGORY_META } from './categoryMeta'
 
 const t = (
   base: Omit<Partial<Tool>, 'processing' | 'component'>,
-  component: () => Promise<{ default: React.ComponentType }>,
+  _legacyComponent: () => Promise<{ default: React.ComponentType }>,
 ): Tool => ({
   status: 'production',
   processing: { local: 'Processing happens entirely in your browser. Files never leave your device.' },
   ...base,
-  component,
+  component: () => Promise.resolve({ default: () => <ToolRuntime toolId={String(base.id)} /> }),
 })
 
 const TOOLS: Tool[] = [
