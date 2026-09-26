@@ -1,4 +1,4 @@
-import { useState, type ReactNode } from 'react'
+import { useEffect, useState, type ReactNode } from 'react'
 import QRCode from 'qrcode'
 import jsQR from 'jsqr'
 import { jsPDF } from 'jspdf'
@@ -105,7 +105,9 @@ function DeveloperTool({toolId}:{toolId:string}) {
 }
 
 function Productivity({toolId}:{toolId:string}) {
-  const [a,setA]=useState(''),[b,setB]=useState(''),[result,setResult]=useState('')
+  const [a,setA]=useState(''),[b,setB]=useState(''),[result,setResult]=useState(''),[seconds,setSeconds]=useState(0),[running,setRunning]=useState(false)
+  useEffect(()=>{ if(!running || seconds<=0) return; const id=window.setInterval(()=>setSeconds(s=>s-1),1000); return ()=>window.clearInterval(id)},[running,seconds])
+  useEffect(()=>{ if(seconds===0) setRunning(false) },[seconds])
   const run=()=>{
     const x=Number(a), y=Number(b)
     if(toolId==='percentage-calculator') setResult(`${x} of ${y} = ${y?x/y*100:0}%`)
@@ -113,26 +115,30 @@ function Productivity({toolId}:{toolId:string}) {
     else if(toolId==='unit-converter') setResult((x*Number(b||1)).toString())
     else if(toolId==='age-calculator'){const d=new Date(a);const now=new Date();let age=now.getFullYear()-d.getFullYear();if(now<new Date(now.getFullYear(),d.getMonth(),d.getDate()))age--;setResult(String(age))}
     else if(toolId==='date-calculator'){const d1=new Date(a),d2=new Date(b);setResult(String(Math.round((d2.getTime()-d1.getTime())/86400000)))}
-    else if(toolId==='timezone-converter') setResult(new Date(a||Date.now()).toString())
+    else if(toolId==='timezone-converter') { const zone=b||'Africa/Nairobi'; try{setResult(new Intl.DateTimeFormat(undefined,{dateStyle:'full',timeStyle:'long',timeZone:zone}).format(new Date(a||Date.now())))}catch{setResult('Invalid IANA timezone. Example: Africa/Nairobi')}}
+    else if(toolId==='currency-converter') setResult(`${x} × ${y||1} = ${x*(y||1)}`)
+    else if(toolId==='pomodoro-timer'||toolId==='countdown-timer') { const n=Math.max(1,Math.floor(x||25))*60; setSeconds(n); setRunning(true); setResult('Timer started.') }
+    else if(toolId==='stopwatch') { setSeconds(0); setRunning(true); setResult('Stopwatch started.') }
     else setResult(String(x+y))
   }
-  return <Layout><Field label="Value / date"><input className={input} value={a} onChange={e=>setA(e.target.value)} placeholder={toolId==='age-calculator'?'YYYY-MM-DD':''}/></Field><Field label="Second value"><input className={input} value={b} onChange={e=>setB(e.target.value)}/></Field><button className={btn} onClick={run}>Calculate</button><div className={card+' whitespace-pre-wrap'}>{result||'Result will appear here.'}</div></Layout>
+  return <Layout><Field label="Value / date / amount"><input className={input} value={a} onChange={e=>setA(e.target.value)} placeholder={toolId==='age-calculator'?'YYYY-MM-DD':toolId==='timezone-converter'?'Date/time':toolId.includes('timer')?'Minutes':''}/></Field><Field label={toolId==='timezone-converter'?'Target timezone (IANA)':'Second value / rate'}><input className={input} value={b} onChange={e=>setB(e.target.value)} placeholder={toolId==='timezone-converter'?'Africa/Nairobi':''}/></Field><div className="flex flex-wrap gap-2"><button className={btn} onClick={run}>{toolId.includes('timer')||toolId==='stopwatch'?'Start':'Calculate'}</button>{(toolId.includes('timer')||toolId==='stopwatch')&&<button className={btn} onClick={()=>{setRunning(false);setSeconds(0)}}>Reset</button>}</div>{(toolId.includes('timer')||toolId==='stopwatch')&&<div className={card+' text-center text-4xl font-bold tabular-nums'}>{Math.floor(seconds/60).toString().padStart(2,'0')}:{(seconds%60).toString().padStart(2,'0')}</div>}<div className={card+' whitespace-pre-wrap'}>{result||'Result will appear here.'}</div></Layout>
 }
 
 function ImageTool({toolId}:{toolId:string}) {
   const {file,input:fileInput}=useFile(); const [result,setResult]=useState(''); const [url,setUrl]=useState('')
-  const [width,setWidth]=useState(''),[height,setHeight]=useState(''),[quality,setQuality]=useState('0.8')
+  const [width,setWidth]=useState(''),[height,setHeight]=useState(''),[quality,setQuality]=useState('0.8'),[format,setFormat]=useState('png'),[ratio,setRatio]=useState('free')
   const run=async()=>{
     if(!file) return
-    const img=await loadImage(file); const w=Number(width)||img.naturalWidth,h=Number(height)||img.naturalHeight
+    const img=await loadImage(file); let w=Number(width)||img.naturalWidth, h=Number(height)||img.naturalHeight
+    if(toolId==='image-cropper' && ratio!=='free'){ const [rw,rh]=ratio.split(':').map(Number); if(w/h>rw/rh) w=Math.round(h*rw/rh); else h=Math.round(w*rh/rw) }
     const canvas=document.createElement('canvas'); canvas.width=w;canvas.height=h;const ctx=canvas.getContext('2d')!
     ctx.drawImage(img,0,0,w,h)
     if(toolId==='image-color-extractor'){const sample=ctx.getImageData(0,0,w,h).data;let r=0,g=0,b=0,n=0;for(let i=0;i<sample.length;i+=Math.max(4,Math.floor(sample.length/12000))*4){r+=sample[i];g+=sample[i+1];b+=sample[i+2];n++}setResult(`Dominant sample: #${[r/n,g/n,b/n].map(x=>Math.round(x).toString(16).padStart(2,'0')).join('')}`);return}
     if(toolId==='background-remover'){const d=ctx.getImageData(0,0,w,h),p=d.data;for(let i=0;i<p.length;i+=4){if(p[i]>235&&p[i+1]>235&&p[i+2]>235)p[i+3]=0}ctx.putImageData(d,0,0)}
-    const type=toolId==='image-converter'&&file.type.includes('jpeg')?'image/png':toolId==='image-converter'?'image/png':file.type==='image/png'?'image/png':'image/jpeg'
-    const out=canvas.toDataURL(type,Number(quality)||.8);setUrl(out);setResult(`${w} × ${h}`)
+    const type=format==='jpg'?'image/jpeg':format==='webp'?'image/webp':'image/png'
+    const out=canvas.toDataURL(type,Number(quality)||.8);setUrl(out);setResult(`${w} × ${h} • ${format.toUpperCase()}`)
   }
-  return <Layout>{fileInput}<div className="grid gap-3 sm:grid-cols-3"><input className={input} placeholder="Width" value={width} onChange={e=>setWidth(e.target.value)}/><input className={input} placeholder="Height" value={height} onChange={e=>setHeight(e.target.value)}/><input className={input} placeholder="Quality 0-1" value={quality} onChange={e=>setQuality(e.target.value)}/></div><button className={btn} disabled={!file} onClick={run}>Process image</button>{url&&<img className="max-h-96 rounded-lg border object-contain" src={url}/>}<div className={card}>{result||'Choose an image to begin.'}</div>{url&&<button className={btn} onClick={()=>downloadDataUrl(url,`${toolId}.png`)}>Download image</button>}</Layout>
+  return <Layout>{fileInput}<div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4"><input className={input} placeholder="Width" value={width} onChange={e=>setWidth(e.target.value)}/><input className={input} placeholder="Height" value={height} onChange={e=>setHeight(e.target.value)}/><select className={input} value={format} onChange={e=>setFormat(e.target.value)}><option value="png">PNG</option><option value="jpg">JPG</option><option value="webp">WebP</option></select><input className={input} placeholder="Quality 0-1" value={quality} onChange={e=>setQuality(e.target.value)}/></div><select className={input} value={ratio} onChange={e=>setRatio(e.target.value)}><option value="free">Crop: Free</option><option value="1:1">Crop: 1:1</option><option value="4:5">Crop: 4:5</option><option value="16:9">Crop: 16:9</option></select><button className={btn} disabled={!file} onClick={run}>Process image</button>{url&&<img className="max-h-96 rounded-lg border object-contain" src={url}/>}<div className={card}>{result||'Choose an image to begin.'}</div>{url&&<button className={btn} onClick={()=>downloadDataUrl(url,`${toolId}.${format}`)}>Download image</button>}</Layout>
 }
 
 function QRTool({toolId}:{toolId:string}) {
@@ -222,8 +228,8 @@ export default function ToolRuntime({toolId}:Props) {
     ['invoice-generator','quotation-generator','receipt-generator','payment-voucher','cv-builder','digital-business-card','link-in-bio','menu-builder'].includes(toolId)?'business':
     ['color-palette-generator','gradient-generator','font-pairing-tool','business-card-maker','id-card-maker','certificate-maker','logo-mockup-generator','screenshot-mockup-generator','social-media-post-maker','flyer-maker','poster-maker','letterhead-maker','brand-kit-generator'].includes(toolId)?'design':
     ['meta-tag-generator','open-graph-generator','robots-txt-generator','sitemap-generator','url-parser','http-header-viewer','website-performance-checker','url-shortener'].includes(toolId)?'web':
-    ['uuid-generator','password-generator','hash-generator','timestamp-converter','regex-tester','markdown-previewer','html-formatter','css-formatter','javascript-formatter','json-formatter','json-validator','json-minifier','base64-encoder','base64-decoder','url-encoder','url-decoder'].includes(toolId)?'developer':
-    ['word-counter','character-counter','case-converter','remove-duplicate-lines','text-sorter','text-cleaner','slug-generator','text-diff','find-replace','lorem-ipsum-generator'].includes(toolId)?'text':'productivity'
+    ['uuid-generator','password-generator','hash-generator','timestamp-converter','regex-tester','markdown-previewer','html-formatter','css-formatter','javascript-formatter','json-formatter','json-validator','json-minifier','base64-encoder','base64-decoder','url-encoder','url-decoder','jwt-decoder'].includes(toolId)?'developer':
+    ['word-counter','character-counter','case-converter','remove-duplicate-lines','text-sorter','text-cleaner','slug-generator','text-diff','find-replace','lorem-ipsum-generator','checklist-maker'].includes(toolId)?'text':'productivity'
   if(category==='image') return <ImageTool toolId={toolId}/>
   if(category==='pdf') return <PdfTool toolId={toolId}/>
   if(category==='qr') return <QRTool toolId={toolId}/>
